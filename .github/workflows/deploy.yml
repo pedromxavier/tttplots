@@ -1,0 +1,46 @@
+name: tttplots-deploy
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  plot:
+    name: Python ${{ matrix.python-version }} @ ${{ matrix.os }}.${{ matrix.arch }} (${{ github.event_name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: '3.10'
+            os: ubuntu-latest
+            arch: x64
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install `build` and `twine`
+      run: >
+        python3 -m pip install --upgrade build;
+        python3 -m pip install --upgrade twine;
+    - name: Write `.pypirc`
+      run: >
+        echo -e "[pypi]\n  username = __token__\n  password = ${{ secrets.PYPI_TOKEN }}" > ~/.pypirc;
+    - name: Build
+      run: >
+        python3 -m build;
+    - name: Deploy
+      run: >
+        python3 -m twine upload dist/*;
+      # env:
+      #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
+      # run: >
+      #   git config --global user.name "GitHub Actions";
+      #   git config --global user.email "suporte@psr-inc.com";
+      #   git add --ignore-errors -f
+      #   ./benchmark/results.*;
+      #   ./benchmark/toqubo.*;
+      #   git commit -m "Save Benchmark Plots [actions]";
+      #   git push;
+        
+
