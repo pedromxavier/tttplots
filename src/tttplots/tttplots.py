@@ -44,7 +44,7 @@ def plot_series(t: np.ndarray, name: str, npoints: int = 100):
     plt.plot(t_t, t_p, "--")
 
     # Empirical Plot
-    plt.scatter(t, p, marker="+", label=name)
+    plt.scatter(t, p, marker="x", label=name)
 
 
 def tttplot(dst_path: str, name_list: list, path_list: list, npoints: int = 100):
