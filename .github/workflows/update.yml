@@ -6,10 +6,18 @@ on:
     workflows: [tttplots-deploy]
     types:
       - completed
+  push:
+    branches: [main]
+    tags: '*'
+    paths:
+      - src/**
   
 jobs:
   update-plots:
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_dispatch }}
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
     name: Python ${{ matrix.python-version }} @ ${{ matrix.os }}.${{ matrix.arch }} (${{ github.event_name }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -25,15 +33,23 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install `tttplots`
+      run: python3 -m pip install .
+    - name: Extract target
+      run: |
+        python3 -m tttplots.extract '1.0' ./examples/data/A/series_*.csv -o ./examples/data/A/series.dat
+        python3 -m tttplots.extract '1.0' ./examples/data/B/series_*.csv -o ./examples/data/B/series.dat
+    - name: Plot
       run: >
-        python3 -m pip install .
-      # env:
-      #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
-      # run: >
-      #   git config --global user.name "GitHub Actions";
-      #   git config --global user.email "suporte@psr-inc.com";
-      #   git add --ignore-errors -f
-      #   ./benchmark/results.*;
-      #   ./benchmark/toqubo.*;
-      #   git commit -m "Save Benchmark Plots [actions]";
-      #   git push;
+        python3 -m tttplots
+          -o ./examples/series.pdf
+          -s "Method A" ./examples/data/A/series.dat
+          -s "Method B" ./examples/data/B/series.dat
+    - name: Save Results
+      run: |
+        git config --global user.name  "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add --ignore-errors -f ./examples/series.pdf
+        git commit -m "Save Plots [actions]"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
