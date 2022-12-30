@@ -41,9 +41,9 @@ jobs:
     - name: Plot
       run: >
         python3 -m tttplots
-          -o ./examples/series.pdf
-          -s "Method A" ./examples/data/A/series.dat
-          -s "Method B" ./examples/data/B/series.dat
+        -o ./examples/series.pdf
+        -s "Method A" ./examples/data/A/series.dat
+        -s "Method B" ./examples/data/B/series.dat
     - name: Save Results
       run: |
         git config --global user.name  "GitHub Actions"
