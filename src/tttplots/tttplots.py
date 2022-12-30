@@ -1,5 +1,6 @@
 # Standard Library
 import argparse
+import csv
 import shutil
 
 # Third-party
@@ -10,8 +11,10 @@ import scienceplots
 # Local
 from .version import __version__, __python_version__
 
+
 def has_latex():
-    return (shutil.which("latex") is not None)
+    return shutil.which("latex") is not None
+
 
 def plot_series(t: np.ndarray, name: str, npoints: int = 100):
     n = len(t)
@@ -19,14 +22,14 @@ def plot_series(t: np.ndarray, name: str, npoints: int = 100):
     p = np.array([(i + 0.5) / (n + 1) for i in range(n)])
 
     # Lower Quantile
-    ql  = int(0.25 * (n + 1))
-    zl  = t[ql]
-    wl  = -np.log(1 - p[ql])
+    ql = int(0.25 * (n + 1))
+    zl = t[ql]
+    wl = -np.log(1 - p[ql])
 
     # Upper Quantile
-    qu  = int(0.75 * (n + 1))
-    zu  = t[qu]
-    wu  = -np.log(1 - p[qu])
+    qu = int(0.75 * (n + 1))
+    zu = t[qu]
+    wu = -np.log(1 - p[qu])
 
     # Distribution parameters
     λ = (zu - zl) / (wu - wl)
@@ -34,27 +37,28 @@ def plot_series(t: np.ndarray, name: str, npoints: int = 100):
     ε = T / npoints
 
     # Theoretical Curve
-    t_t = np.array([i * ε                       for i in range(npoints)])
+    t_t = np.array([i * ε for i in range(npoints)])
     t_p = np.array([1 - np.exp((μ - i * ε) / λ) for i in range(npoints)])
 
     # Theoretical Plot
-    plt.plot(t_t, t_p, '--')
+    plt.plot(t_t, t_p, "--")
 
     # Empirical Plot
-    plt.scatter(t, p, marker="+", label = name)
+    plt.scatter(t, p, marker="+", label=name)
+
 
 def tttplot(dst_path: str, name_list: list, path_list: list, npoints: int = 100):
     # Configure Plot
-    plt.figure(figsize = (5,4))
+    plt.figure(figsize=(5, 4))
 
     if has_latex():
-        plt.style.use(['science'])
+        plt.style.use(["science"])
     else:
-        plt.style.use(['science', 'no-latex'])
+        plt.style.use(["science", "no-latex"])
 
     # Plot Text
     plt.title("Time-to-target Plot")
-    
+
     plt.xlabel("Time (sec)")
     plt.ylabel("Cumulative Probability")
 
@@ -75,7 +79,9 @@ def tttplot(dst_path: str, name_list: list, path_list: list, npoints: int = 100)
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--out", default="figure.pdf")
-    parser.add_argument("-s", "--src", nargs=2, metavar=("name", "path"), action="append")
+    parser.add_argument(
+        "-s", "--src", nargs=2, metavar=("name", "path"), action="append"
+    )
     parser.add_argument("-n", "--npoints", default=100, type=int)
     parser.add_argument(
         "-v",
@@ -97,5 +103,5 @@ def main():
         path_list.append(path)
 
     tttplot(args.out, name_list, path_list, args.npoints)
-
+    
     exit(0)
