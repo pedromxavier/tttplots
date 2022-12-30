@@ -1,5 +1,6 @@
 import argparse
 import csv
+import glob
 
 
 def extract(target: float, path_list: list, dst_path: str):
@@ -10,11 +11,11 @@ def extract(target: float, path_list: list, dst_path: str):
 
         with open(path, "r") as fp:
             for row in csv.DictReader(fp):
-                zt.append(row["t"], row["z"])
+                zt.append((float(row["t"]), float(row["z"])))
 
         zt.sort()
 
-        for z, t in zt:
+        for t, z in zt:
             if z >= target:
                 tt.append(t)
 
@@ -32,6 +33,11 @@ def main():
 
     args = parser.parse_args()
 
-    extract(args.target, args.path, args.out)
+    path_list = []
+
+    for path in args.path:
+        path_list.extend(glob.glob(path))
+
+    extract(args.target, path_list, args.out)
 
     exit(0)
